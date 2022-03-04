@@ -17,7 +17,7 @@
 
         </div>
         <div id="cadastroInformacoes">
-            <form action="router.php" name="frmCadastro" method="post">
+            <form action="router.php?component=contatos&action=inserir" name="frmCadastro" method="post">
                 <div class="campos">
                     <div class="cadastroInformacoesPessoais">
                         <label> Nome: </label>
