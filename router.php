@@ -21,12 +21,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     //recebendo dados via url para saber quem está solicitando e qual ação será realizada
     $component = strtoupper($_GET['component']);
-    $action = $_GET['action'];
+    $action = strtoupper($_GET['action']);
 
     //estrutura condicional para validar quem está solicitando algo para o router
     switch ($component) {
+
         case 'CONTATOS':
-            echo ('chamando a controler de contato');
+
+            //import da controller contato
+            require_once('controller/controllerContatos.php');
+
+            if ($action == 'INSERIR')
+                inserirContato($_POST);
             break;
     }
 }
