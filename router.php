@@ -31,8 +31,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             //import da controller contato
             require_once('controller/controllerContatos.php');
 
-            if ($action == 'INSERIR')
-                inserirContato($_POST);
+            //validacao para identificar o tipo de acao que sera realizada
+            if ($action == 'INSERIR') {
+                //chama a funcao de inserir na controller
+                $resposta = inserirContato($_POST);
+
+                //valida o tipo de dado que a controller retorna
+                if (is_bool($resposta)) //se for booleano
+                {
+                    //verificar se o retorno foi verdadeiro
+                    if ($resposta)
+                        echo ("<script> 
+                                alert('Registro inserido com sucesso!');
+                                window.location.href = 'index.php'; 
+                            </script>"); // essa funcao retorna a página inicial apos a execuca
+                } elseif (is_array($resposta))
+                    echo ("<script> 
+                        alert('" . $resposta['message'] . "');
+                        window.history.back(); 
+                   </script>");
+            }
+
             break;
     }
 }
