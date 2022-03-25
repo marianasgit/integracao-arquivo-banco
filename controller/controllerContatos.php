@@ -38,7 +38,7 @@ function inserirContato($dadosContato)
                 return array('idErro' => 1, 'message' => 'Não foi possível inserir os dados no banco de dados');
         } else
             return array(
-                'idErro = 2',
+                'idErro' => 2,
                 'message' => 'Existem campos obrigatórios que não foram preenchidos'
             );
     }
@@ -50,8 +50,27 @@ function atualizarContato()
 
 
 //função para realizar a exclusão de um contato 
-function excluirContato()
+function excluirContato($id)
 {
+    // Validação para verificar se id contem um numero valido
+    if ($id != 0 && !empty($id) && is_numeric($id)) {
+
+        // Import do arquivo de contato
+        require_once('model/bd/contato.php');
+
+        // Chama a função da model e valida se o retorno foi verdadeiro ou falso
+        if (deleteContato($id))
+            return true;
+        else
+            return array(
+                'idErro' => 3,
+                'message' => 'O banco de dados não pode excluir o registro.'
+            );
+    } else
+        return array(
+            'idErro' => 4,
+            'message' => 'Não é possível excluir um registro sem informar um Id válido'
+        );
 }
 
 
