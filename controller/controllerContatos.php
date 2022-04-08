@@ -15,7 +15,7 @@ function inserirContato($dadosContato)
     //validacao para verificar se o objeto esta vazio
     if (!empty($dadosContato)) {
 
-        //validacao de caixa vazia dos elementos: nome, celular e email pois são obrugatorias no BD
+        //validacao de caixa vazia dos elementos: nome, celular e email pois são obrigatorias no BD
         if (!empty($dadosContato['txtNome']) && !empty($dadosContato['txtCelular']) && !empty($dadosContato['txtEmail'])) {
             //criacao do array de dados que sera encaminhado para a model para inserir no BD,
             // é importante criar esse array conforme a necessidade de manipulação do BD

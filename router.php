@@ -45,13 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' || $_SERVER['REQUEST_METHOD'] == 'GET')
                         echo ("<script> 
                                 alert('Registro inserido com sucesso!');
                                 window.location.href = 'index.php'; 
-                            </script>"); // essa funcao retorna a página inicial apos a execuca
+                            </script>"); // essa funcao retorna a página inicial apos a execucao
                 } elseif (is_array($resposta))
 
                     echo ("<script> 
-                        alert('" . $resposta['message'] . "');
-                        window.history.back(); 
-                   </script>");
+                            alert('" . $resposta['message'] . "');
+                            window.history.back(); 
+                        </script>");
             } elseif ($action == 'DELETAR') 
             {
                 //Recebe o id do registro que devera ser excluido, e foi enviado pela url no link da imagem do excluir que foi acionado na index

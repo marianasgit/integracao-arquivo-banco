@@ -7,13 +7,13 @@
  * Versão: 1.0
  *********************************************************************/
 
-//funcao para realizar o insert no bando de dados
 
 //import do arquivo que estabelece a conexao com o BD
 require_once('conexaoMysql.php');
 
 $statusReposta = (bool) false;
 
+//funcao para realizar o insert no bando de dados
 function insertContato($dadosContato)
 {
     //abre a conexao com o BD
