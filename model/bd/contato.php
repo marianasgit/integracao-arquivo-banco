@@ -50,8 +50,35 @@ function insertContato($dadosContato)
     return $statusReposta;
 }
 //funcao para realizar o update no banco de dados
-function updateContato()
+function updateContato($dadosContato)
 {
+     //abre a conexao com o BD
+     $conexao = conexaoMysql();
+
+     //monta o script para enviar para o BD
+     $sql = "update tblcontatos set
+                 nome     = '" . $dadosContato['nome'] . "',
+                 telefone = '" . $dadosContato['telefone'] . "',
+                 celular  = '" . $dadosContato['celular'] . "',
+                 email    = '" . $dadosContato['email'] . "',
+                 obs      = '" . $dadosContato['obs'] . "'
+            where idcontato = " .$dadosContato['id'];
+ 
+     //executa o script no BD
+ 
+     //validacao para verificar se o script sql esta correto
+     if (mysqli_query($conexao, $sql)) {
+ 
+         if (mysqli_affected_rows($conexao))
+ 
+             $statusReposta = true;  // Podemos definir a variável criando em qualquer ligar
+ 
+     } else
+ 
+         // Solicita o fechamento da conexão
+         fecharConexaoMySql($conexao);
+ 
+     return $statusReposta;
 }
 
 //funcao para excluir no banco de dados
@@ -76,7 +103,7 @@ function deleteContato($id)
 }
 
 //funcao para listar todos os contatos no BD
-function selectAllCOntatos()
+function selectAllContatos()
 {
     //abre a conexao com o banco de dados
     $conexao = conexaoMysql();

@@ -94,6 +94,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' || $_SERVER['REQUEST_METHOD'] == 'GET')
 
                 // Utilizando o require, iremos apenas importar a tela da index, assim não havendo um novo carregamento da página
                 require_once('index.php');
+            } elseif ($action == 'EDITAR')
+            {
+                //Recebe o id que foi encaminhado no action do form
+                $idcontato = $_GET['id'];
+
+                //chama a funcao de editar na controller
+                $resposta = atualizarContato($_POST, $idcontato);
+
+                //valida o tipo de dado que a controller retorna
+                if (is_bool($resposta)) //se for booleano
+                {
+                    //verificar se o retorno foi verdadeiro
+                    if ($resposta)
+                        echo ("<script> 
+                                alert('Registro atualizado com sucesso!');
+                                window.location.href = 'index.php'; 
+                            </script>"); // essa funcao retorna a página inicial apos a execuca
+                } elseif (is_array($resposta))
+
+                    echo ("<script> 
+                        alert('" . $resposta['message'] . "');
+                        window.history.back(); 
+                   </script>");
             }
 
             break;
