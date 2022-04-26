@@ -48,7 +48,7 @@
 
         </div>
         <div id="cadastroInformacoes">
-            <form action="<?=$form?>" name="frmCadastro" method="post">
+            <form action="<?=$form?>" name="frmCadastro" method="post" enctype="multipart/form-data"> <!-- "multipart/form-data" - essa opção é obrigatória para enviar arquivos para o servidor-->
                 <div class="campos">
                     <div class="cadastroInformacoesPessoais">
                         <label> Nome: </label>
@@ -84,6 +84,16 @@
                         <input type="email" name="txtEmail" value="<?= isset($email)? $email:null?>">
                     </div>
                 </div>
+
+                <!-- Fazendo upload de imagens -->
+                <div class="campos">
+                    <div class="cadastroInformacoesPessoais">
+                        <label> Escolha um arquivo: </label>
+                    </div>
+                    <div class="cadastroEntradaDeDados">
+                        <input type="file" name="fileFoto" accept=".jpg, .png, .jpeg, .gif"> <!-- O accept faz voce escolher qual arquivo pode fazer upload -->
+                    </div>
+                </div>
                 <div class="campos">
                     <div class="cadastroInformacoesPessoais">
                         <label> Observações: </label>
@@ -111,6 +121,7 @@
                 <td class="tblColunas destaque"> Nome </td>
                 <td class="tblColunas destaque"> Celular </td>
                 <td class="tblColunas destaque"> Email </td>
+                <td class="tblColunas destaque"> Foto </td>
                 <td class="tblColunas destaque"> Opções </td>
             </tr>
 
@@ -126,7 +137,9 @@
                     <td class="tblColunas registros"><?= $item['nome'] ?></td>
                     <td class="tblColunas registros"><?= $item['celular'] ?></td>
                     <td class="tblColunas registros"><?= $item['email'] ?></td>
-
+                    <td class="tblColunas registros">
+                        <img src="arquivos/<?= $item['foto']?>" class="foto">
+                    </td>
                     <td class="tblColunas registros">
                         <a href="router.php?component=contatos&action=buscar&id=<?= $item['id'] ?>">
                             <img src="img/edit.png" alt="Editar" title="Editar" class="editar">

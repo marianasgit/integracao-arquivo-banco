@@ -25,13 +25,15 @@ function insertContato($dadosContato)
                 telefone,
                 celular,
                 email,
-                obs)
+                obs,
+                foto)
             values
                 ('" . $dadosContato['nome'] . "',
                  '" . $dadosContato['telefone'] . "',
                  '" . $dadosContato['celular'] . "',
                  '" . $dadosContato['email'] . "',
-                 '" . $dadosContato['obs'] . "');";
+                 '" . $dadosContato['obs'] . "',
+                 '" . $dadosContato['foto'] . "');";
 
     //executa o script no BD
 
@@ -129,7 +131,8 @@ function selectAllContatos()
                 "telefone"   =>   $rsDados['telefone'],
                 "celular"    =>   $rsDados['celular'],
                 "email"      =>   $rsDados['email'],
-                "obs"        =>   $rsDados['obs']
+                "obs"        =>   $rsDados['obs'],
+                "foto"        =>   $rsDados['foto']
             );
             $cont++;
         }
