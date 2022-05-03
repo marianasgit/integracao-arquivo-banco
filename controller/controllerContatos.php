@@ -23,7 +23,7 @@ function inserirContato($dadosContato, $file)
         {
 
             // Validação para identificar se chegou um arquivo para upload
-            if($file != null)
+            if($file['fileFoto']['name'] != null)
             {
                 // Import da função de upload
                 require_once('modulo/upload.php');
@@ -97,8 +97,17 @@ function buscarContato($id)
 }
 
 //função para receber dados da View e encaminhar para a model (Atualizar)
-function atualizarContato($dadosContato, $id)
+function atualizarContato($dadosContato, $arrayDados)
 {
+    // Recebe o id enviado pelo array dados
+    $id = $arrayDados['id'];
+
+    // Recebe a foto enviada pelo arrayDados (nome da foto que está no BD)
+    $foto = $arrayDados['foto'];
+
+    // Recebe o objeto de array referente a nova foto que poderá ser enviada ao servidor 
+    $file = $arrayDados['file'];
+
     //validacao para verificar se o objeto esta vazio
     if (!empty($dadosContato)) {
 
@@ -108,6 +117,22 @@ function atualizarContato($dadosContato, $id)
             // Validação para garantir que o id seja valido
             if (!empty($id) && $id != 0 && is_numeric($id))
             {
+                // Validacao para identificar se sera enviado ao servidor uma nova foto
+                if ($file ['fileFoto']['name'] != null)
+                {
+                    // Import da função de upload
+                    require_once('modulo/upload.php');
+
+                    // Chama a função de upload para enviar a nova foto ao servidor
+                    $novaFoto = uploadFile($file['fileFoto']);
+
+                } else 
+                {
+                    // Permanece a mesma foto no banco de dados
+                    $novaFoto = $foto;
+                }
+
+
                 //criacao do array de dados que sera encaminhado para a model para inserir no BD,
                 // é importante criar esse array conforme a necessidade de manipulação do BD
                 //obs: criar as chaves do array conforme os nomes dos atributos do banco de dados 
@@ -118,6 +143,7 @@ function atualizarContato($dadosContato, $id)
                     "celular"  => $dadosContato['txtCelular'],
                     "email"    => $dadosContato['txtEmail'],
                     "obs"      => $dadosContato['txtObs'],
+                    "foto"     =>$novaFoto
                 );
 
                 //import do arquivo de modelagem para manipular o BD
@@ -143,25 +169,53 @@ function atualizarContato($dadosContato, $id)
 }
 
 //função para realizar a exclusão de um contato 
-function excluirContato($id)
+function excluirContato($arrayDados)
 {
+    // recebe o id do registro
+    $id = $arrayDados['id'];
+
+    // recebeo nome da foto que sera excluida
+    $foto = $arrayDados['foto'];
+
+
     // Validação para verificar se id contem um numero valido
     if ($id != 0 && !empty($id) && is_numeric($id)) {
 
         // Import do arquivo de contato
         require_once('model/bd/contato.php');
+        // Import do arquivo de config
+        require_once('modulo/config.php');
 
         // Chama a função da model e valida se o retorno foi verdadeiro ou falso
         if (deleteContato($id))
-            return true;
+        {
+
+            if($foto!=null)
+            {
+                //Permite apagar a foto fisicamente do diretorio nos servidores
+                if(unlink(DIRETORIO_FILE_UPLOAD.$foto)) // Unlink() = funçção para apagar um arquivo de um diretório
+                {
+                    return true;
+    
+                } else {
+                    return array(
+                        'idErro'  => 5,
+                        'message' => 'o registro do Banco de Dados foi excluído com sucesso, porém a imagem não foi excluída do diretório do servidor!'
+                    );
+                }
+            } else {
+                return true;
+            }
+
+        }
         else
             return array(
-                'idErro' => 3,
+                'idErro'  => 3,
                 'message' => 'O banco de dados não pode excluir o registro.'
             );
     } else
         return array(
-            'idErro' => 4,
+            'idErro'  => 4,
             'message' => 'Não é possível excluir um registro sem informar um Id válido'
         );
 }

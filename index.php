@@ -1,9 +1,11 @@
 <?php
 
+    require_once('modulo/config.php'); // Report do arquivo de configuracoes do projeto
+
     //Essa variável foi criada para diferenciar no action do formulário qual ação deveria ser levada para a router (inserir ou editar)
     //Nas condições abaixo mudamos o action dessa variavel para a ação de editar 
     $form = (string) "router.php?component=contatos&action=inserir";
-
+    $foto = (string) null; // Variável para carregar o nome da foto do BD 
 
     // Valida se a utilização de variaveis de sessao esta ativa no servidor
     if (session_status()) {
@@ -17,9 +19,10 @@
             $celular    = $_SESSION['dadosContato']['celular'];
             $email      = $_SESSION['dadosContato']['email'];
             $obs        = $_SESSION['dadosContato']['obs'];
+            $foto       = $_SESSION['dadosContato']['foto'];
 
             //Mudamos a ação do form para editar o registro no click do botão salvar
-            $form = "router.php?component=contatos&action=editar&id=".$id;
+            $form = "router.php?component=contatos&action=editar&id=".$id."&foto=".$foto;
 
             // Destroi uma variavel da memoria do servidor
             unset($_SESSION['dadosContato']);
@@ -102,6 +105,9 @@
                         <textarea name="txtObs" cols="50" rows="7"><?= isset($obs)? $obs:null?></textarea>
                     </div>
                 </div>
+                <div class="campos">
+                    <img src="<?=DIRETORIO_FILE_UPLOAD.$foto?>" class="foto">
+                </div>
                 <div class="enviar">
                     <div class="enviar">
                         <input type="submit" name="btnEnviar" value="Salvar">
@@ -131,20 +137,22 @@
             // Chama a função que retorna os dados de contatos
             $listContato = listarContato();
             // Estrutura de repetição para retornar os dados do array e printar na tela
-            foreach ($listContato as $item) {
+            foreach ($listContato as $item) 
+            {
+                $foto = $item['foto']; // Variavel para carregar a foto que veio do BD
             ?>
                 <tr id="tblLinhas">
                     <td class="tblColunas registros"><?= $item['nome'] ?></td>
                     <td class="tblColunas registros"><?= $item['celular'] ?></td>
                     <td class="tblColunas registros"><?= $item['email'] ?></td>
                     <td class="tblColunas registros">
-                        <img src="arquivos/<?= $item['foto']?>" class="foto">
+                        <img src="arquivos/<?= $foto ?>" class="foto">
                     </td>
                     <td class="tblColunas registros">
                         <a href="router.php?component=contatos&action=buscar&id=<?= $item['id'] ?>">
                             <img src="img/edit.png" alt="Editar" title="Editar" class="editar">
                         </a>
-                        <a onclick="return confirm('Deseja excluir esse item?')" href="router.php?component=contatos&action=deletar&id=<?= $item['id'] ?>">
+                        <a onclick="return confirm('Deseja excluir esse item?')" href="router.php?component=contatos&action=deletar&id=<?= $item['id']?>&foto=<?=$foto?>">
                             <img src="img/trash.png" alt="Excluir" title="Excluir" class="excluir">
                         </a>
                         <img src="img/search.png" alt="Visualizar" title="Visualizar" class="pesquisar">
