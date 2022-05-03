@@ -151,7 +151,10 @@ function atualizarContato($dadosContato, $arrayDados)
 
                 //chama a funcao que fara o insert no banco de dados (essa funcao esta na model)
                 if (updateContato($arrayDados))
+                {
+                    unlink(DIRETORIO_FILE_UPLOAD.$foto);
                     return true;
+                }
                 else
                     return array('idErro' => 1, 'message' => 'Não foi possível atualizar os dados no banco de dados');
             } else {
