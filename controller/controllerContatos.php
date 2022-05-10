@@ -22,7 +22,7 @@ function inserirContato($dadosContato, $file)
     if (!empty($dadosContato)) {
 
         //validacao de caixa vazia dos elementos: nome, celular e email pois são obrigatorias no BD
-        if (!empty($dadosContato['txtNome']) && !empty($dadosContato['txtCelular']) && !empty($dadosContato['txtEmail'])) 
+        if (!empty($dadosContato['txtNome']) && !empty($dadosContato['txtCelular']) && !empty($dadosContato['txtEmail']) && !empty($dadosContato['sltEstado'])) 
         {
 
             // Validação para identificar se chegou um arquivo para upload
@@ -49,12 +49,13 @@ function inserirContato($dadosContato, $file)
             // é importante criar esse array conforme a necessidade de manipulação do BD
             //obs: criar as chaves do array conforme os nomes dos atributos do banco de dados 
             $arrayDados = array(
-                "nome"      => $dadosContato['txtNome'],
+                "nome"     => $dadosContato['txtNome'],
                 "telefone" => $dadosContato['txtTelefone'],
                 "celular"  => $dadosContato['txtCelular'],
                 "email"    => $dadosContato['txtEmail'],
                 "foto"     => $nomeFoto,
                 "obs"      => $dadosContato['txtObs'],
+                "idEstado" => $dadosContato['sltEstado']
             );
 
             //import do arquivo de modelagem para manipular o BD
@@ -149,7 +150,8 @@ function atualizarContato($dadosContato, $arrayDados)
                     "celular"  => $dadosContato['txtCelular'],
                     "email"    => $dadosContato['txtEmail'],
                     "obs"      => $dadosContato['txtObs'],
-                    "foto"     =>$novaFoto
+                    "foto"     => $novaFoto,
+                    "idestado" => $dadosContato['sltEstado']
                 );
 
                 //import do arquivo de modelagem para manipular o BD

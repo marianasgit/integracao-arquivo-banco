@@ -26,14 +26,16 @@ function insertContato($dadosContato)
                 celular,
                 email,
                 obs,
-                foto)
+                foto,
+                idestado)
             values
                 ('" . $dadosContato['nome'] . "',
                  '" . $dadosContato['telefone'] . "',
                  '" . $dadosContato['celular'] . "',
                  '" . $dadosContato['email'] . "',
                  '" . $dadosContato['obs'] . "',
-                 '" . $dadosContato['foto'] . "');";
+                 '" . $dadosContato['foto'] . "',
+                 '".$dadosContato['idEstado']."');";
 
     //executa o script no BD
 
@@ -64,7 +66,8 @@ function updateContato($dadosContato)
                  celular  = '" . $dadosContato['celular'] . "',
                  email    = '" . $dadosContato['email'] . "',
                  obs      = '" . $dadosContato['obs'] . "',
-                 foto     = '" .$dadosContato['foto'] ."'
+                 foto     = '" .$dadosContato['foto'] ."',
+                 idEstado = '" .$dadosContato['idestado']."'
             where idcontato = " .$dadosContato['id'];
  
      //executa o script no BD
@@ -133,7 +136,8 @@ function selectAllContatos()
                 "celular"    =>   $rsDados['celular'],
                 "email"      =>   $rsDados['email'],
                 "obs"        =>   $rsDados['obs'],
-                "foto"        =>   $rsDados['foto']
+                "foto"       =>   $rsDados['foto'],
+                "idestado"   =>   $rsDados['idestado']
             );
             $cont++;
         }
@@ -141,7 +145,10 @@ function selectAllContatos()
         // Solicita o fechamento da conexão com o BD. Ação obrigatória (abrir e fechar) 
         fecharConexaoMySql($conexao);
 
-        return $arrayDados;
+        if(isset($arrayDados))
+            return $arrayDados;
+        else    
+            return false;    
     }
 }
 
@@ -173,7 +180,8 @@ function selectByIdContato($id)
                 "celular"    =>   $rsDados['celular'],
                 "email"      =>   $rsDados['email'],
                 "obs"        =>   $rsDados['obs'],
-                "foto"       =>   $rsDados['foto'] 
+                "foto"       =>   $rsDados['foto'],
+                "idestado"   =>   $rsDados['idestado']
             );
         }
 
