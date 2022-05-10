@@ -9,6 +9,9 @@
  * Versão: 1.0
  *******************************************************************/
 
+// Import do arquivo de configuração do projeto
+require_once('modulo/config.php');
+
 //função para receber dados da View e encaminhar para a model (Inserir)
 function inserirContato($dadosContato, $file)
 {
@@ -99,6 +102,8 @@ function buscarContato($id)
 //função para receber dados da View e encaminhar para a model (Atualizar)
 function atualizarContato($dadosContato, $arrayDados)
 {
+    $statusUpload = (boolean) false;
+
     // Recebe o id enviado pelo array dados
     $id = $arrayDados['id'];
 
@@ -125,6 +130,7 @@ function atualizarContato($dadosContato, $arrayDados)
 
                     // Chama a função de upload para enviar a nova foto ao servidor
                     $novaFoto = uploadFile($file['fileFoto']);
+                    $statusUpload = true;
 
                 } else 
                 {
@@ -152,7 +158,12 @@ function atualizarContato($dadosContato, $arrayDados)
                 //chama a funcao que fara o insert no banco de dados (essa funcao esta na model)
                 if (updateContato($arrayDados))
                 {
-                    unlink(DIRETORIO_FILE_UPLOAD.$foto);
+                    // Validação para verificar se será necessário apagar a foto antiga para subir uma nova no banco
+                    if ($statusUpload)
+                    {
+                        // Apaga a foto antiga da pasta dos servidores
+                        unlink(DIRETORIO_FILE_UPLOAD.$foto);
+                    }
                     return true;
                 }
                 else
