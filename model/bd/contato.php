@@ -189,6 +189,14 @@ function selectByIdContato($id)
         // Solicita o fechamento da conexão com o BD. Ação obrigatória (abrir e fechar) 
         fecharConexaoMySql($conexao);
 
-        return $arrayDados;
+        if (isset($arrayDados)) 
+        {
+            return $arrayDados;
+            
+        } else 
+        {
+            return false;
+        }
+
     
 }
