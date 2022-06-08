@@ -11,7 +11,7 @@
 //import do arquivo que estabelece a conexao com o BD
 require_once('conexaoMysql.php');
 
-$statusReposta = (bool) false;
+$statusResposta = (bool) false;
 
 //funcao para realizar o insert no bando de dados
 function insertContato($dadosContato)
@@ -44,14 +44,14 @@ function insertContato($dadosContato)
 
         if (mysqli_affected_rows($conexao))
 
-            $statusReposta = true;  // Podemos definir a variável criando em qualquer ligar
+            $statusResposta = true;  // Podemos definir a variável criando em qualquer ligar
 
     } else
 
         // Solicita o fechamento da conexão
         fecharConexaoMySql($conexao);
 
-    return $statusReposta;
+    return $statusResposta;
 }
 //funcao para realizar o update no banco de dados
 function updateContato($dadosContato)
@@ -77,14 +77,14 @@ function updateContato($dadosContato)
  
          if (mysqli_affected_rows($conexao))
  
-             $statusReposta = true;  // Podemos definir a variável criando em qualquer ligar
+             $statusResposta = true;  // Podemos definir a variável criando em qualquer ligar
  
      } else
  
          // Solicita o fechamento da conexão
          fecharConexaoMySql($conexao);
  
-     return $statusReposta;
+     return $statusResposta;
 }
 
 //funcao para excluir no banco de dados

@@ -1,94 +1,250 @@
-<?php 
+<?php
 
 /***********
  * $request   - recebe dados do corpo da requisiçao (JSON, FORM/DATA, XML, etc)
  * $response  - envia dados de retorno da api
  * $args      - permite receber dados de atributos na api
+ * 
+ * Os métodos de requisição para uma API são:
+ * - GET -> buscar dados
+ * - POST -> inserir um novo dado
+ * - DELETE -> para apahar dados
+ * - PUT/PATCH -> para editar um dado já existente. O mais utilizado é o PUT  
  */
 
- // import do arquivo autoload, que fara as instancias do slim;
- require_once('vendor/autoload.php');
+// import do arquivo autoload, que fara as instancias do slim;
+require_once('vendor/autoload.php');
 
- //criando um objeto do slim chamandi app, para configurar os EndPoints;
- $app = new \Slim\app();
+//criando um objeto do slim chamandi app, para configurar os EndPoints;
+$app = new \Slim\app();
 
-  //EndPoint Requisicao para listar todos os contatos
-  $app->get('/contatos',function($request,$response,$args){
-      
-   // Import da controller de contatos que fara a busca 
-   require_once('../modulo/config.php');
-   require_once('../controller/controllerContatos.php');
+//EndPoint Requisicao para listar todos os contatos
+$app->get('/contatos', function ($request, $response, $args) {
 
-   // Solicita os dados para a controller
-   if ($dados = listarContato()) 
-   {
-     // Realiza a conversão do array de dados em formato JSON
-     if($dadosJSON = createJSON($dados))
-     {
-       // Caso existam dados a serem retornados, informamos o status code e enviamos o JSON com os dados encontrados
-        return $response  ->withStatus(200)
-                          ->withHeader('Content-Type', 'application/json')
-                          ->write($dadosJSON); 
-     }
+  // Import da controller de contatos que fara a busca 
+  require_once('../modulo/config.php');
+  require_once('../controller/controllerContatos.php');
 
-     // Retorna o status que significa que a requisição não foi encontrada
-   } else {
+  // Solicita os dados para a controller
+  if ($dados = listarContato()) 
+  {
+    // Realiza a conversão do array de dados em formato JSON
+    if ($dadosJSON = createJSON($dados)) {
+      // Caso existam dados a serem retornados, informamos o status code e enviamos o JSON com os dados encontrados
+      return $response->withStatus(200)
+                      ->withHeader('Content-Type', 'application/json')
+                      ->write($dadosJSON);
+    }
 
-      return $response  ->withStatus(404)
+    // Retorna o status que significa que a requisição não foi encontrada
+  } else {
+
+    return $response->withStatus(404)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->write('{"message: "Item não encontrado!"}');
+  }
+});
+
+//EndPoint Requisicao para listar somente um contato pelo id
+$app->get('/contatos/{id}', function ($request, $response, $args) {
+
+  // Recebe o id do do registro que deverá ser retornado pela API
+  $id = $args['id'];
+
+  // Import da controller de contatos que fara a busca 
+  require_once('../modulo/config.php');
+  require_once('../controller/controllerContatos.php');
+
+  if ($dados = buscarContato($id)) 
+  {
+    // Verifica se houve algum erro
+    if (!isset($dados['idErro'])) {
+
+      // Realiza a conversão do array de dados em formato JSON
+      if ($dadosJSON = createJSON($dados)) {
+
+        // Caso existam dados a serem retornados, informamos o status code e enviamos o JSON com os dados encontrados
+        return $response->withStatus(200)
                         ->withHeader('Content-Type', 'application/json')
-                        ->write('{"message: "Item não encontrado!"}'); 
-   }
-   
-  });
+                        ->write($dadosJSON);
+      }
+    } else {
 
- //EndPoint Requisicao para listar somente um contatos/id
-  $app->get('/contatos/{id}',function($request,$response,$args){
+      // Convete para JSON o erro, pois a controller retorna uma array
+      $dadosJSON = createJSON($dados);
 
-    // Recebe o id do do registro que deverá ser retornado pela API
+      // Retorna o status que significa que a requisição não foi encontrada
+      return $response->withStatus(404)
+                      ->withHeader('Content-Type', 'application/json')
+                      ->write('{"message": "Dados Inválidos",
+                                                  "Erro": ' . $dadosJSON . '}');
+    }
+
+
+  } else {
+
+    //retorna um statusCode que significa que a requisição foi aceita, porém sem
+            //conteudo de retorno 
+    return $response ->withStatus(204);
+                    
+  }
+});
+
+
+//EndPoint Requisicao para inserir um novo contato
+$app->post('/contatos', function ($request, $response, $args) {
+
+  // Recebe do header da requisição qual será o content-type
+  $contentTypeHeader = $request->getHeaderLine('Content-Type');
+
+  // Cria um array pois dependendo do content-type temos mais informações separadas pelo ";"
+  $contentType = explode(";", $contentTypeHeader);
+
+  switch ($contentType[0]) {
+
+    case 'multipart/form-data':
+
+      // Recebe os dados enviados pelo corpo da requisição
+      $dadosBody = $request->getParsedBody();
+
+      // Recebe uma imagem enviada pelo corpo da requisição 
+      $uploadFiles = $request->getUploadedFiles();
+
+      // Cria um array com todos os dados que chegaram pela requisição
+      $arrayFoto = array(
+
+        "name" => $uploadFiles['foto']->getClientFileName(),
+        "type" => $uploadFiles['foto']->getClientMediaType(),
+        "size" => $uploadFiles['foto']->getSize(),
+        "tmp_name" => $uploadFiles['foto']->file
+      );
+
+      // Cria uma chave chamada foto para colocar todos os dados do objeto conforme é gerado no form
+      $file = array("foto" => $arrayFoto);
+
+      // Cria um array com todos os dados comuns e do arquivo que será enviado aos servidores
+      $arrayDados = array(
+
+        $dadosBody,
+        "file" => $file
+      );
+
+      // Import da controller
+      require_once('../modulo/config.php');
+      require_once('../controller/controllerContatos.php');
+
+      // Chama a função da controller para inserir os dados
+      $resposta = inserirContato($arrayDados);
+
+      if (is_bool($resposta) && $resposta == true) {
+
+        return $response->withStatus(201)
+                        ->withHeader('Content-Type', 'application/json')
+                        ->write('{"message": "Registro inserido com sucesso"}');
+
+      } elseif (is_array($resposta) && $resposta['idErro']) {
+
+        $dadosJSON = createJSON($resposta);
+
+        return $response->withStatus(404)
+          ->withHeader('Content-Type', 'application/json')
+          ->write('{"message": "Houve um problema no processo de inserção",
+                                      "Erro": ' . $dadosJSON . '} ');
+      }
+
+      break;
+
+    case 'application/json':
+
+      $dadosBody = $request -> getParsedBody();
+      var_dump($dadosBody);
+      die;
+
+      return $response->withStatus(200)
+                      ->withHeader('Content-Type', 'application/json')
+                      ->write('{"message": "Formato selecionado foi JSON"}');
+
+      break;
+
+    default:
+      return $response->withStatus(400)
+                      ->withHeader('Content-Type', 'application/json')
+                      ->write('{"message": "Formato selecionado inválido"}');
+      break;
+  }
+});
+
+// Endpoint Requisição para deletar um contato pelo Id
+$app->delete('/contatos/{id}', function ($request, $response, $args) {
+
+  if (is_numeric($args['id'])) {
+    // Recebe o Id enviado no Endpoint
     $id = $args['id'];
 
     // Import da controller de contatos que fara a busca 
     require_once('../modulo/config.php');
     require_once('../controller/controllerContatos.php');
 
-    if ($dados = buscarContato($id)) 
-    {
-      // Verifica se houve algum erro
-      if (!isset($dados['idErro']))
-      {
-        // Realiza a conversão do array de dados em formato JSON
-        if($dadosJSON = createJSON($dados))
-        {
-          // Caso existam dados a serem retornados, informamos o status code e enviamos o JSON com os dados encontrados
-            return $response  ->withStatus(200)
-                              ->withHeader('Content-Type', 'application/json')
-                              ->write($dadosJSON); 
-        }
+    // Busca o nome da foto para ser excluida na controller
+    if ($dados = buscarContato($id)) {
 
-      } else 
-      {
-        // Convete para JSON o erro, pois a controller retorna uma array
-        $dadosJSON = createJSON($dados);
+      // Recebe o nome da foto que a controller retornou
+      $foto = $dados['foto'];
 
-        return $response  ->withStatus(404)
+      // Cria um array para a controller excluir o registro
+      $arrayDados = array(
+        "id"   => $id,
+        "foto" => $foto
+      );
+
+      // Chama a função de excluir contato, encaminhando um array
+      $resposta = excluirContato($arrayDados);
+
+      if (is_bool($resposta) && $resposta == true) {
+
+        return $response->withStatus(200)
+                        ->withHeader('Content-Type', 'application/json')
+                        ->write('{"message": "Registro excluído com sucesso"} ');
+
+      } elseif (is_array($resposta) && isset($resposta['idErro'])) {
+
+        // Validação para registro excluido, porem com erro para excluir a imagem 
+        if ($resposta['idErro'] == 5) {
+          return $response->withStatus(200)
                           ->withHeader('Content-Type', 'application/json')
-                          ->write('{"message": "Dados Inválidos",
-                                    "Erro": '.$dadosJSON.'}'); 
+                          ->write('{"message": "O registro foi excluído com sucesso, porém não foi possível excluir a imagem"} ');
+        
+        } else {
+
+          $dadosJSON = createJSON($resposta);
+
+          return $response->withStatus(404)
+                          ->withHeader('Content-Type', 'application/json')
+                          ->write('{"message": "Houve um problema no processo de exclusão",
+                                                        "Erro": ' . $dadosJSON . '} ');
+        }
       }
 
-
-    // Retorna o status que significa que a requisição não foi encontrada
     } else {
-
-      return $response  ->withStatus(404)
-                        ->withHeader('Content-Type', 'application/json')
-                        ->write('{"message: "Item não encontrado!"}'); 
+      return $response->withStatus(404)
+        ->withHeader('Content-Type', 'application/json')
+        ->write('{"message": "O Id informado não foi encontrado na base de dados"} ');
     }
-  });
+  } else {
+    return $response->withStatus(404)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->write('{"message": "É obrigatório informar um Id com formato válido (número)"} ');
+  }
 
-  
-  //EndPoint Requisicao para inserir um novo contato
-  $app->post('/contatos',function($request,$response,$args){
+});
+
+// Endpoint para editar um contato pelo Id, simulando o PUT
+$app->post('/contatos/{id}', function ($request, $response, $args) {
+
+
+  if (is_numeric($args['id'])) 
+  {
+    $id = $args['id'];
 
     // Recebe do header da requisição qual será o content-type
     $contentTypeHeader = $request->getHeaderLine('Content-Type');
@@ -100,149 +256,93 @@
 
       case 'multipart/form-data':
 
-        // Recebe os dados enviados pelo corpo da requisição
-        $dadosBody = $request->getParsedBody();
-        
-        // Recebe uma imagem enviada pelo corpo da requisição 
-        $uploadFiles = $request->getUploadedFiles();
-        
-        // Cria um array com todos os dados que chegaram pela requisição
-        $arrayFoto = array (
-
-              "name" => $uploadFiles['foto']->getClientFileName(),
-              "type" => $uploadFiles['foto']->getClientMediaType(),
-              "size" => $uploadFiles['foto']->getSize(),
-          "tmp_name" => $uploadFiles['foto']->file
-        );
-
-        // Cria uma chave chamada foto para colocar todos os dados do objeto conforme é gerado no form
-        $file = array("foto" => $arrayFoto);
-
-        // Cria um array com todos os dados comuns e do arquivo que será enviado aos servidores
-        $arrayDados = array (
-
-          $dadosBody,
-          "file" => $file
-        );
-
         // Import da controller
         require_once('../modulo/config.php');
         require_once('../controller/controllerContatos.php');
-        
-        // Chama a função da controller para inserir os dados
-        $resposta = inserirContato($arrayDados);
-        
-        if (is_bool($resposta) && $resposta == true)
+
+        // Chama a função para buscar a foto que já está salva no bd
+        if ($dadosContato = buscarContato($id)) 
         {
-          return $response ->withStatus(201)
-                           ->withHeader('Content-Type', 'application/json')
-                           ->write('{"message": "Registro inserido com sucesso"}');
-  
+          $fotoAtual = $dadosContato['foto'];
 
-        } elseif (is_array($resposta) && $resposta['idErro'])
-        {
+          // Recebe os dados enviados pelo corpo da requisição
+          $dadosBody = $request->getParsedBody();
+          
 
-          $dadosJSON = createJSON($resposta);
+          // Recebe uma imagem enviada pelo corpo da requisição 
+          $uploadFiles = $request->getUploadedFiles();
 
-          return $response ->withStatus(404)
-                           -> withHeader('Content-Type', 'application/json')
-                           -> write('{"message": "Houve um problema no processo de inserção",
-                                      "Erro": '.$dadosJSON.'} ');
+          // Cria um array com todos os dados que chegaram pela requisição
+          $arrayFoto = array(
+
+            "name"     => $uploadFiles['foto']->getClientFileName(),
+            "type"     => $uploadFiles['foto']->getClientMediaType(),
+            "size"     => $uploadFiles['foto']->getSize(),
+            "tmp_name" => $uploadFiles['foto']->file
+          );
+
+          // Cria uma chave chamada foto para colocar todos os dados do objeto conforme é gerado no form
+          $file = array("foto" => $arrayFoto);
+
+          // Cria um array com todos os dados comuns e do arquivo que será enviado aos servidores
+          $arrayDados = array(
+            $dadosBody,
+            "file" => $file,
+            "id"   => $id,
+            "foto" => $fotoAtual
+
+          );
+          
+          // Chama a função da controller para inserir os dados
+          $resposta = atualizarContato($arrayDados);
+
+          if (is_bool($resposta) && $resposta == true) {
+
+            return $response->withStatus(201)
+                            ->withHeader('Content-Type', 'application/json')
+                            ->write('{"message": "Registro atualizado com sucesso"}');
+
+          } elseif (is_array($resposta) && $resposta['idErro']) {
+
+            $dadosJSON = createJSON($resposta);
+
+            return $response->withStatus(404)
+                            ->withHeader('Content-Type', 'application/json')
+                            ->write('{"message": "Houve um problema no processo de atualização",
+                                        "Erro": ' . $dadosJSON . '} ');
+          }
+
+        } else {
+          return $response->withStatus(404)
+                          ->withHeader('Content-Type', 'application/json')
+                          ->write('{"message": "O ID informado não existe na base de dados."} ');
         }
 
-      break;
+        break;
+
       case 'application/json':
-        return $response ->withStatus(200)
-                         ->withHeader('Content-Type', 'application/json')
-                         ->write('{"message": "Formato selecionado foi JSON"}');
+
+        $dadosBody = $request->getParsedBody();
+
+        return $response->withStatus(200)
+                        ->withHeader('Content-Type', 'application/json')
+                        ->write('{"message": "Formato selecionado foi JSON"}');
 
         break;
 
       default:
-        return $response ->withStatus(400)
-                         ->withHeader('Content-Type', 'application/json')
-                         ->write('{"message": "Formato selecionado inválido"}');
+        return $response->withStatus(400)
+                        ->withHeader('Content-Type', 'application/json')
+                        ->write('{"message":  "Formato do Content-Type não é válido para esta requisisção"}');
         break;
     }
+  } else {
 
-  });
-  
-  // Endpoint Requisição para deletar um contato pelo Id
-  $app->delete('/contatos/{id}', function($request, $response, $args)
-  {
+      return $response ->withStatus(404)
+                       ->withHeader('Content-Type', 'application/json')
+                       ->writewrite('{"message": "É obrigatório informar um ID com formato válido (número)"}');;
+  }
+});
 
-      if(is_numeric($args['id']))
-      {
-        // Recebe o Id enviado no Endpoint
-        $id = $args['id'];
-        
-        // Import da controller de contatos que fara a busca 
-        require_once('../modulo/config.php');
-        require_once('../controller/controllerContatos.php');
-        
-        // Busca o nome da foto para ser excluida na controller
-        if($dados = buscarContato($id))
-        {
-          // Recebe o nome da foto que a controller retornou
-          $foto = $dados['foto'];
-
-          // Cria um array para a controller excluir o registro
-          $arrayDados = array(
-              "id"   => $id,
-              "foto" => $foto
-          );
-
-          // Chama a função de excluir contato, encaminhando um array
-          $resposta = excluirContato($arrayDados);
-          
-          if(is_bool($resposta) && $resposta == true)
-          {
-            return $response -> withStatus(200)
-                             -> withHeader('Content-Type', 'application/json')
-                             -> write('{"message": "Registro excluído com sucesso"} ');
-
-          } elseif(is_array($resposta) && isset($resposta['idErro']))
-          {
-
-            // Validação para registro excluido, porem com erro para excluir a imagem 
-            if ($resposta['idErro'] == 5) 
-            {
-              return $response -> withStatus(200)
-                               -> withHeader('Content-Type', 'application/json')
-                               -> write('{"message": "O registro foi excluído com sucesso, porém não foi possível excluir a imagem"} ');
-
-            } else {
-
-              $dadosJSON = createJSON($resposta);
-
-              return $response -> withStatus(404)
-                              -> withHeader('Content-Type', 'application/json')
-                              -> write('{"message": "Houve um problema no processo de exclusão",
-                                          "Erro": '.$dadosJSON.'} ');
-            }
-
-          }
-
-        } else
-        {
-          return $response -> withStatus(404)
-                           -> withHeader('Content-Type', 'application/json')
-                           -> write('{"message": "O Id informado não foi encontrado na base de dados"} ');
-        }
-
-
-      } else
-      {
-        return $response -> withStatus(404)
-                         ->withHeader('Content-Type', 'application/json')
-                         ->write('{"message": "É obrigatório informar um Id com formato válido (número)"} '); 
-      }
-
-  });
-
-
-  // Executa todos os endpoints
-  $app->run();
-
-
-?> 
+// Executa todos os endpoints
+$app->run();
